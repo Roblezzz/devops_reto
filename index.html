@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <!-- Se añaden CSS para dar estilo-->
+    <style>
+    body {
+        background-color: #232F3E;
+        }
+    label, button {
+        color: #FF9900;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        margin-left: 40px;
+        }
+     input {
+        color: #232F3E;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        margin-left: 20px;
+        }
+    </style>
+    <script>
+        // se define una función callAPI que recibe un nombre y apellidos como parámetros
+        var callAPI = (firstName,lastName)=>{
+            // inicia un objeto header
+            var myHeaders = new Headers();
+            // añade contenido de header al objeto
+            myHeaders.append("Content-Type", "application/json");
+            // utiliza el objeto JSON y lo transforma en un string
+            var raw = JSON.stringify({"firstName":firstName,"lastName":lastName});
+            // crea un objeto JSON con parametros para llamar a la API y guardarlo en una variable
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+            // hace una llamada a la API y usa promesas para obtener la respuesta
+            fetch("YOUR-API-INVOKE-URL", requestOptions)
+            .then(response => response.text())
+            .then(result => alert(JSON.parse(result).body))
+            .catch(error => console.log('error', error));
+        }
+    </script>
+</head>
+<body>
+    <form>
+        <label>First Name :</label>
+        <input type="text" id="fName">
+        <label>Last Name :</label>
+        <input type="text" id="lName">
+        <!-- añade un botón con el método onclick para llamar a la función creada previamente -->
+        <button type="button" onclick="callAPI(document.getElementById('fName').value,document.getElementById('lName').value)">Call API</button>
+    </form>
+</body>
+</html>
