@@ -16,10 +16,6 @@ resource "aws_dynamodb_table" "db" {
   }
 }
 
-output "db-arn" {
-  value = aws_dynamodb_table.db.arn
-}
-
 #IAM Role y Policy
 data "aws_iam_policy_document" "lambda_document" {
 	statement {
@@ -74,7 +70,7 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
 
 data "archive_file" "lambda" {
   type        = "zip"
-  source_file = "${path.module}/python/lambda_function.py"
+  source_file = "python/lambda_function.py"
   output_path = "lambda_function.zip"
 }
 
@@ -83,7 +79,7 @@ resource "aws_lambda_function" "test_lambda" {
   filename      = "lambda_function.zip"
   function_name = "${var.common_name}-lambda"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "index.test"
+  handler       = "lambda_function.lambda_handler"
   runtime       = "python3.8"
   depends_on    = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
   environment {
@@ -99,25 +95,20 @@ resource "aws_api_gateway_rest_api" "api" {
 
 }
 
-resource "aws_api_gateway_resource" "resource" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
-  path_part   = "lambda"
-}
-
 resource "aws_api_gateway_method" "method" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.resource.id
+  resource_id   = aws_api_gateway_rest_api.api.root_resource_id
   http_method   = "POST"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "integration" {
+  depends_on  = [aws_lambda_function.test_lambda]
   rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.resource.id
+  resource_id             = aws_api_gateway_rest_api.api.root_resource_id
   http_method             = aws_api_gateway_method.method.http_method
   integration_http_method = "POST"
-  type                    = "AWS_PROXY"
+  type                    = "AWS"
   uri                     = aws_lambda_function.test_lambda.invoke_arn
 }
 
@@ -127,14 +118,50 @@ resource "aws_lambda_permission" "apigw_lambda" {
   function_name = aws_lambda_function.test_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "arn:aws:execute-api:${var.region}:${var.accountID}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}${aws_api_gateway_resource.resource.path}"
+  source_arn = "${aws_api_gateway_rest_api.api.execution_arn}/*/*/*"
 }
 
 resource "aws_api_gateway_deployment" "deploy" {
   depends_on  = [aws_api_gateway_integration.integration]
   rest_api_id = aws_api_gateway_rest_api.api.id
+  stage_name = "dev"
+}
+
+resource "aws_api_gateway_method_response" "proxy" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_rest_api.api.root_resource_id
+  http_method = aws_api_gateway_method.method.http_method
+  status_code = "200"
+
+  //cors section
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
 
 }
+
+resource "aws_api_gateway_integration_response" "proxy" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_rest_api.api.root_resource_id
+  http_method = aws_api_gateway_method.method.http_method
+  status_code = aws_api_gateway_method_response.proxy.status_code
+
+
+  //cors
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" =  "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+}
+
+  depends_on = [
+    aws_api_gateway_method.method,
+    aws_api_gateway_integration.integration
+  ]
+}
+
 
 # Creación de AWS Amplify, servira para mostrar la página en la internet pública
 resource "aws_amplify_app" "front" {
