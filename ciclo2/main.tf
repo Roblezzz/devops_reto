@@ -188,6 +188,6 @@ resource "aws_amplify_app" "front" {
 
   environment_variables = {
     ENV    = var.env
-    apiURL = aws_api_gateway_deployment.deploy.invoke_url
+    API = aws_api_gateway_deployment.deploy.invoke_url
   }
 }

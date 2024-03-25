@@ -23,7 +23,6 @@
     </style>
     <script>
         // se define una función callAPI que recibe un nombre y apellidos como parámetros
-        require('dotenv').config()
         var callAPI = (firstName,lastName)=>{
             // inicia un objeto header
             var myHeaders = new Headers();
@@ -39,7 +38,7 @@
                 redirect: 'follow'
             };
             // hace una llamada a la API y usa promesas para obtener la respuesta
-            var apiURL = process.env.API
+            const apiURL = process.env.API
             fetch(apiURL, requestOptions)
             .then(response => response.text())
             .then(result => alert(JSON.parse(result).body))
