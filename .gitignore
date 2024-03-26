@@ -1,6 +1,7 @@
 .idea/
 *.zip
 urls.txt
+.DS_Store
 ### Terraform ###
 *.terraform
 *.tfstate
@@ -16,3 +17,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 *.lock.hcl
+

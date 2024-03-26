@@ -18,20 +18,20 @@ resource "aws_dynamodb_table" "db" {
 
 #IAM Role y Policy
 data "aws_iam_policy_document" "lambda_document" {
-	statement {
-		sid    = "testPolicyId"
-		effect = "Allow"
-		principals {
-			identifiers = ["lambda.amazonaws.com"]
-			type        = "Service"
-		}
-		actions = ["sts:AssumeRole"]
-	}
+  statement {
+    sid    = "testPolicyId"
+    effect = "Allow"
+    principals {
+      identifiers = ["lambda.amazonaws.com"]
+      type        = "Service"
+    }
+    actions = ["sts:AssumeRole"]
+  }
 }
 
 resource "aws_iam_role" "lambda_role" {
-	name               = "lambda_test_role"
-	assume_role_policy = data.aws_iam_policy_document.lambda_document.json
+  name               = "lambda_test_role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_document.json
 }
 
 resource "aws_iam_policy" "iam_policy_for_lambda" {
@@ -103,7 +103,7 @@ resource "aws_api_gateway_method" "method" {
 }
 
 resource "aws_api_gateway_integration" "integration" {
-  depends_on  = [aws_lambda_function.test_lambda]
+  depends_on              = [aws_lambda_function.test_lambda]
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_rest_api.api.root_resource_id
   http_method             = aws_api_gateway_method.method.http_method
@@ -124,7 +124,7 @@ resource "aws_lambda_permission" "apigw_lambda" {
 resource "aws_api_gateway_deployment" "deploy" {
   depends_on  = [aws_api_gateway_integration.integration]
   rest_api_id = aws_api_gateway_rest_api.api.id
-  stage_name = "dev"
+  stage_name  = "dev"
 }
 
 resource "aws_api_gateway_method_response" "proxy" {
@@ -137,7 +137,7 @@ resource "aws_api_gateway_method_response" "proxy" {
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = true,
     "method.response.header.Access-Control-Allow-Methods" = true,
-    "method.response.header.Access-Control-Allow-Origin" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
   }
 
 }
@@ -151,10 +151,10 @@ resource "aws_api_gateway_integration_response" "proxy" {
 
   //cors
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" =  "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
-    "method.response.header.Access-Control-Allow-Origin" = "'*'"
-}
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 
   depends_on = [
     aws_api_gateway_method.method,
@@ -187,7 +187,7 @@ resource "aws_amplify_app" "front" {
 
 
   environment_variables = {
-    ENV    = var.env
+    ENV = var.env
     API = aws_api_gateway_deployment.deploy.invoke_url
   }
 }
