@@ -1,4 +1,4 @@
-ame: Continuous Delivery - Pull Request
+name: Continuous Delivery - Pull Request
 on:
   workflow_dispatch:
     inputs:
