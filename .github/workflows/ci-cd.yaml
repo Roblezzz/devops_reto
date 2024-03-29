@@ -1,4 +1,4 @@
-name: Continuous Delivery - Pull Request
+name: Deployment
 on:
   workflow_dispatch:
     inputs:
