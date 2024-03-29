@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  namespace: devops
+spec:
+  selector:
+    matchLabels:
+      app: app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: roblezzz/dnapp:dev
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: "1024m"
+              memory: "1024Mi"
+            requests:
+              memory: "512Mi"
+              cpu: "512m"

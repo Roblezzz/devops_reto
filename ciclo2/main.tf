@@ -164,30 +164,30 @@ resource "aws_api_gateway_integration_response" "proxy" {
 
 
 # Creación de AWS Amplify, servira para mostrar la página en la internet pública
-resource "aws_amplify_app" "front" {
-  name                     = "${var.common_name}-app"
-  repository               = var.repo
-  access_token             = var.gh_token
-  enable_branch_auto_build = true
+# resource "aws_amplify_app" "front" {
+#   name                     = "${var.common_name}-app"
+#   repository               = var.repo
+#   access_token             = var.gh_token
+#   enable_branch_auto_build = true
 
-  build_spec = <<-EOT
-    version: 0.1
-    frontend:
-      phases:
-        build:
-          commands: []
-      artifacts:
-        baseDirectory: /ciclo2/HTML
-        files:
-          - '**/*'
-      cache:
-        paths: []
+#   build_spec = <<-EOT
+#     version: 0.1
+#     frontend:
+#       phases:
+#         build:
+#           commands: []
+#       artifacts:
+#         baseDirectory: /ciclo2/HTML
+#         files:
+#           - '**/*'
+#       cache:
+#         paths: []
       
-  EOT
+#   EOT
 
 
-  environment_variables = {
-    ENV = var.env
-    API = aws_api_gateway_deployment.deploy.invoke_url
-  }
-}
+#   environment_variables = {
+#     ENV = var.env
+#     API = aws_api_gateway_deployment.deploy.invoke_url
+#   }
+# }

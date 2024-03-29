@@ -1,0 +1,66 @@
+ame: Continuous Delivery - Pull Request
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Reason'
+        required: true
+        default: 'Deployment'
+  # pull_request:
+  #   branches:
+  #     - master
+  #   types: [closed]
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-west-2
+
+jobs:
+  Deployment:
+    # if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+                      # allowed values: amd64, arm64
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Install AWS CLI"
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 2                         # default
+          verbose: false                     # default
+          arch: amd64  
+
+      - name: "ACTIONS_ALLOW_UNSECURE_COMMANDS"
+        id: ACTIONS_ALLOW_UNSECURE_COMMANDS
+        run: echo 'ACTIONS_ALLOW_UNSECURE_COMMANDS=true' >> $GITHUB_ENV
+
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "Building Docker"
+        run: |
+          cd ciclo3/
+          docker build -t dnapp .
+          docker tag dnapp ${{ secrets.DOCKERHUB_USERNAME }}/dnapp:dev
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dnapp:dev
+
+      - name: "Login to EKS"
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_DEFAULT_REGION }} --name ${{ secrets.CLUSTER_NAME }}
+
+      - name: "Installing app"
+        run: |
+          cd ciclo3/
+          kubectl create namespace devops
+          kubectl apply -f app.yaml
+          kubectl apply -f app-service.yaml
+
+      # - name: Helm install
+      #   run: helm install boutique ./boutique
+      #   working-directory: chart/
