@@ -1,5 +1,5 @@
 // Define manualmente la URL de la API
-const apiUrl = 'https://ggfsimckbd.execute-api.us-west-2.amazonaws.com/dev';
+const apiUrl = ' ';
 
 // Define la función callAPI que recibe un nombre y apellidos como parámetros
 function callAPI(firstName, lastName) {
